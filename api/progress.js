@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client';
 import { createHash } from 'node:crypto';
-const db=()=>createClient({url:process.env.TURSO_DATABASE_URL,authToken:process.env.TURSO_AUTH_TOKEN});
+const db=()=>createClient({url:process.env.TURSO_DATABASE_URL,authToken:(process.env.TURSO_AUTH_TOKEN || process.env.TURSO_DATABASE_AUTH_TOKEN)});
 const allowed=new Set(['tetris','shooter','snake','breaker','bomberman','checkers','pacman','lolo']);
 async function schema(d){await d.batch([
 'CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime(\'now\')))',
