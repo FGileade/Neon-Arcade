@@ -63,6 +63,10 @@ input { user-select:text; -webkit-user-select:text; }
 .rank-list .nm { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .rank-list .sc { color:#0ff; }
 .rank-list .rank-empty { color:#aaa; justify-content:center; border-bottom:none; }
+#account-screen input { background:#080808;color:#0ff;border:1px solid #0ff;border-radius:8px;padding:11px;font:14px Orbitron;width:100%; }
+.account-actions { display:flex;gap:8px;flex-wrap:wrap;justify-content:center; }
+.account-note {font-size:11px;color:#aaa;line-height:1.5;}
+
 @media (max-width:600px) {
   h1 { font-size:1.8rem; }
   #hud { font-size:.9rem; top:10px; left:10px; right:10px; flex-direction:column; gap:10px; }
@@ -90,9 +94,30 @@ input { user-select:text; -webkit-user-select:text; }
 <button class="game-card" onclick="startGame('pacman')"><div class="game-icon">🟡</div><div class="game-title">Pac Man</div></button>
 <button class="game-card" onclick="startGame('lolo')"><div class="game-icon">🗝️</div><div class="game-title">Adventures of Lolo</div></button>
         </div>
-        <button class="btn btn-magenta btn-small" onclick="openRanking()">🏆 Ranking</button>
+        <button class="btn btn-magenta btn-small" onclick="openRanking()">Ranking</button>
+        <button class="btn btn-small" onclick="openAccount()">Usuários / Entrar</button>
+        <button class="btn btn-small" onclick="openProgress()">Meu progresso</button>
       </div>
 
+      <div id="account-screen" class="screen hidden">
+        <h2>Minha conta</h2>
+        <p id="account-status" class="account-note">Visitante: progresso salvo neste navegador.</p>
+        <input id="account-email" type="email" autocomplete="email" placeholder="E-mail">
+        <input id="account-password" type="password" autocomplete="new-password" placeholder="Senha (mínimo 10 caracteres)">
+        <input id="account-confirm" type="password" autocomplete="new-password" placeholder="Confirme a senha">
+        <p id="account-msg" class="save-msg"></p>
+        <div class="account-actions">
+          <button class="btn btn-small" onclick="accountAction('register')">Criar conta</button>
+          <button class="btn btn-small" onclick="accountAction('login')">Entrar</button>
+          <button class="btn btn-magenta btn-small" onclick="accountAction('logout')">Sair</button>
+        </div>
+        <p class="account-note">Conta: progresso sincronizado no Turso. Visitante: dados permanecem somente neste navegador. Use uma senha exclusiva.</p>
+        <button class="btn btn-magenta" onclick="closeAccount()">Voltar</button>
+      </div>
+      <div id="progress-screen" class="screen hidden">
+        <h2>Meu progresso</h2><ul id="progress-list" class="rank-list"></ul>
+        <button class="btn btn-magenta" onclick="closeProgress()">Voltar</button>
+      </div>
       <div id="game-over-screen" class="screen hidden">
         <h2 id="go-title">Fim de Jogo</h2>
         <p>Pontuação Final: <span id="final-score">0</span></p>
@@ -171,6 +196,56 @@ function toggleGamepad() {
 }
 
 const hubScreen = document.getElementById('hub-screen');
+const accountScreen = document.getElementById('account-screen');
+const progressScreen = document.getElementById('progress-screen');
+let arcadeUser = null;
+async function refreshAccount(){
+  try{const r=await fetch('/api/auth');const d=await r.json();arcadeUser=d.user||null;}
+  catch{arcadeUser=null;}
+  const status=document.getElementById('account-status');
+  if(status)status.textContent=arcadeUser?'Conectado: '+arcadeUser.email:'Visitante: progresso salvo neste navegador.';
+}
+function openAccount(){hubScreen.classList.add('hidden');accountScreen.classList.remove('hidden');refreshAccount();}
+function closeAccount(){accountScreen.classList.add('hidden');hubScreen.classList.remove('hidden');}
+async function accountAction(action){
+  const msg=document.getElementById('account-msg'),email=document.getElementById('account-email').value.trim(),password=document.getElementById('account-password').value,confirm=document.getElementById('account-confirm').value;
+  msg.textContent='Processando...';
+  try{
+    if(action==='register'&&password!==confirm)throw new Error('As senhas não conferem.');
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,email,password})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||'Não foi possível concluir.');
+    if(action==='logout')arcadeUser=null;else arcadeUser=d.user;
+    msg.textContent=action==='logout'?'Sessão encerrada.': 'Acesso confirmado.';
+    await refreshAccount();
+    if(arcadeUser)await syncGuestProgress();
+  }catch(e){msg.textContent=e.message;}
+}
+async function saveProgress(){
+  const key='neonArcadeProgress',game=lastApp,score=Number(globalScore)||0;
+  try{
+    const local=JSON.parse(storeGet(key)||'{}');const old=local[game]||{best:0,played:0};
+    local[game]={best:Math.max(old.best||0,score),played:(old.played||0)+1,updated:new Date().toISOString()};
+    storeSet(key,JSON.stringify(local));
+  }catch{}
+  try{
+    const r=await fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game,score})});
+    if(r.status===401)await refreshAccount();
+  }catch{}
+}
+async function syncGuestProgress(){
+  let data={};try{data=JSON.parse(storeGet('neonArcadeProgress')||'{}');}catch{}
+  for(const [game,v] of Object.entries(data)){try{await fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game,score:v.best||0})});}catch{}}
+}
+async function openProgress(){
+  hubScreen.classList.add('hidden');progressScreen.classList.remove('hidden');const list=document.getElementById('progress-list');list.replaceChildren();
+  let data={};
+  if(arcadeUser){try{const r=await fetch('/api/progress');if(!r.ok)throw new Error();const d=await r.json();for(const p of d.progress)data[p.game]={best:Number(p.best_score),played:Number(p.games_played)};}catch{}}
+  else{try{data=JSON.parse(storeGet('neonArcadeProgress')||'{}');}catch{}}
+  for(const [game,v] of Object.entries(data)){const li=document.createElement('li');li.textContent=(GAME_LABELS[game]||game)+': recorde '+(v.best||0)+' · partidas '+(v.played||0);list.appendChild(li);}
+  if(!list.children.length)list.appendChild(rankMsg('Nenhum progresso salvo ainda.'));
+}
+function closeProgress(){progressScreen.classList.add('hidden');hubScreen.classList.remove('hidden');}
+
 const gameOverScreen = document.getElementById('game-over-screen');
 const hud = document.getElementById('hud');
 const scoreDisplay = document.getElementById('score-display');
