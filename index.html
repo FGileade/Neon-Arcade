@@ -85,8 +85,10 @@ input { user-select:text; -webkit-user-select:text; }
           <button class="game-card" onclick="startGame('shooter')"><div class="game-icon">🚀</div><div class="game-title">Space Shooter</div></button>
           <button class="game-card" onclick="startGame('snake')"><div class="game-icon">🐍</div><div class="game-title">Neon Snake</div></button>
           <button class="game-card" onclick="startGame('breaker')"><div class="game-icon">💥</div><div class="game-title">Block Breaker</div></button>
-          <button class="game-card" onclick="startGame('pong')"><div class="game-icon">🏓</div><div class="game-title">Pong vs IA</div></button>
-          <button class="game-card" onclick="startGame('matrix')"><div class="game-icon">🟢</div><div class="game-title">Matrix Dodge</div></button>
+          <button class="game-card" onclick="startGame('bomberman')"><div class="game-icon">💣</div><div class="game-title">Bomberman</div></button>
+          <button class="game-card" onclick="startGame('checkers')"><div class="game-icon">♟️</div><div class="game-title">Damas</div></button>
+<button class="game-card" onclick="startGame('pacman')"><div class="game-icon">🟡</div><div class="game-title">Pac Man</div></button>
+<button class="game-card" onclick="startGame('lolo')"><div class="game-icon">🗝️</div><div class="game-title">Adventures of Lolo</div></button>
         </div>
         <button class="btn btn-magenta btn-small" onclick="openRanking()">🏆 Ranking</button>
       </div>
@@ -682,8 +684,8 @@ const TetrisGame = {
 };
 
 /* ========== RANKING (API /api/scores -> Turso) ========== */
-const GAME_ICONS = { tetris:'🧱', shooter:'🚀', snake:'🐍', breaker:'💥', pong:'🏓', matrix:'🟢' };
-const GAME_LABELS = { tetris:'Neon Tetris', shooter:'Space Shooter', snake:'Neon Snake', breaker:'Block Breaker', pong:'Pong vs IA', matrix:'Matrix Dodge' };
+const GAME_ICONS = { tetris:'🧱', shooter:'🚀', snake:'🐍', breaker:'💥', bomberman:'💣', checkers:'♟️', pacman:'🟡', lolo:'🗝️' };
+const GAME_LABELS = { tetris:'Neon Tetris', shooter:'Space Shooter', snake:'Neon Snake', breaker:'Block Breaker', bomberman:'Bomberman', checkers:'Damas', pacman:'Pac Man', lolo:'Adventures of Lolo' };
 const rankScreen = document.getElementById('rank-screen');
 const rankTabs = document.getElementById('rank-tabs');
 const rankList = document.getElementById('rank-list');
@@ -766,7 +768,7 @@ function closeRanking() {
 }
 
 /* ========== ENGINE ========== */
-const Games = { shooter:ShooterGame, snake:SnakeGame, breaker:BreakerGame, pong:PongGame, matrix:MatrixGame, tetris:TetrisGame };
+const Games = { shooter:ShooterGame, snake:SnakeGame, breaker:BreakerGame, bomberman:BombermanGame, checkers:CheckersGame, pacman:PacmanGame, lolo:LoloGame, tetris:TetrisGame };
 let lastApp = 'hub';
 
 function startGame(name) {
