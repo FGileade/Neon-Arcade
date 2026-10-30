@@ -20,7 +20,7 @@ function getClient() {
   if (!client) {
     const url = process.env.TURSO_DATABASE_URL;
     if (!url) throw new Error('TURSO_DATABASE_URL não configurada');
-    client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+    client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN || process.env.TURSO_DATABASE_AUTH_TOKEN });
   }
   return client;
 }
