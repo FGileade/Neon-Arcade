@@ -1,0 +1,16 @@
+{
+  "name": "neon-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Neon Arcade - 6 jogos em um só, com ranking online (Vercel + Turso)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
+}
