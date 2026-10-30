@@ -6,8 +6,10 @@ const MAX_SCORE = {
   shooter: 1_000_000,
   snake: 100_000,
   breaker: 1_000_000,
-  pong: 5,
-  matrix: 1_000_000,
+  bomberman: 1_000_000,
+  checkers: 1_000_000,
+  pacman: 1_000_000,
+  lolo: 1_000_000,
 };
 const TOP_N = 10;
 
