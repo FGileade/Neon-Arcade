@@ -2,7 +2,7 @@ import { createClient } from '@libsql/client';
 import { randomBytes, scrypt as scryptCb, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 const scrypt=promisify(scryptCb);
-const db=()=>createClient({url:process.env.TURSO_DATABASE_URL,authToken:process.env.TURSO_AUTH_TOKEN});
+const db=()=>createClient({url:process.env.TURSO_DATABASE_URL,authToken:(process.env.TURSO_AUTH_TOKEN || process.env.TURSO_DATABASE_AUTH_TOKEN)});
 async function body(req){if(req.body&&typeof req.body==='object')return req.body;if(typeof req.body==='string')return JSON.parse(req.body);const a=[];for await(const c of req)a.push(c);return JSON.parse(Buffer.concat(a).toString()||'{}');}
 function cookie(req){return (req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('neon_session='))?.slice(13)||'';}
 function hash(v){return createHash('sha256').update(v).digest('hex');}
