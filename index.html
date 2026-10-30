@@ -362,6 +362,7 @@ function loseLife() {
   return globalLives <= 0;
 }
 function setGameOver(msg = 'Fim de Jogo') {
+  saveProgress();
   activeApp = 'gameover';
   goTitle.innerText = msg; finalScoreDisplay.innerText = globalScore;
   prepareSaveBox();
