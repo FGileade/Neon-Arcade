@@ -1,9 +1,9 @@
 # Neon Arcade
 
-Seis jogos em um só (Tetris, Space Shooter, Snake, Block Breaker, Pong vs IA e Matrix Dodge), feito para celular e desktop, com **ranking online**.
+Oito jogos em um só (Tetris, Space Shooter, Snake, Block Breaker, Damas, Bomberman, Pac Man e Adventures of Lolo), feito para celular e desktop, com ranking e progresso.
 
 - **Front-end:** `index.html` (HTML + Canvas, sem build)
-- **API:** `api/scores.js` (função serverless da Vercel)
+- **API:** `api/scores.js`, `api/auth.js` e `api/progress.js` (funções serverless da Vercel)
 - **Banco:** [Turso](https://turso.tech) (SQLite na nuvem) via `@libsql/client`
 - **Hospedagem:** [Vercel](https://vercel.com) ligada ao GitHub (cada `git push` publica)
 
@@ -30,7 +30,7 @@ turso db show neon-arcade --url        # -> TURSO_DATABASE_URL
 turso db tokens create neon-arcade     # -> TURSO_AUTH_TOKEN
 ```
 
-A tabela `scores` é criada automaticamente na primeira chamada da API. Se preferir criar antes: `turso db shell neon-arcade < schema.sql`.
+As tabelas `scores`, `users`, `sessions` e `progress` são criadas automaticamente pelas APIs. Se preferir criar antes: `turso db shell neon-arcade < schema.sql`.
 
 ### 2. GitHub
 
@@ -59,7 +59,7 @@ Abrir o `index.html` direto no navegador também funciona para jogar, mas o rank
 
 ## Segurança e limites
 
-- O banco só é acessado pela API (o token do Turso fica nas variáveis da Vercel, nunca no código).
+- O banco só é acessado pelas APIs (o token do Turso fica nas variáveis da Vercel, nunca no código). Senhas são derivadas com scrypt e sessões usam cookie HttpOnly.
 - A API valida jogo, nome (até 12 caracteres) e pontuação máxima por jogo, e usa consultas parametrizadas.
 - A pontuação é enviada pelo navegador, então um jogador técnico consegue forjar valores dentro do limite. Para um ranking competitivo de verdade seria preciso validar as partidas no servidor.
 - Não há limite de requisições por IP. Se o jogo ficar popular, vale ativar o Vercel Firewall (rate limit).
@@ -67,3 +67,11 @@ Abrir o `index.html` direto no navegador também funciona para jogar, mas o rank
 ## Controles
 
 Teclado (setas / WASD), toque/mouse ou o gamepad virtual (botão **🎮 Controles**).
+
+## Contas e progresso
+
+- É possível jogar como visitante sem cadastro. O recorde e a quantidade de partidas ficam no armazenamento local do navegador.
+- Com cadastro e login por e-mail e senha (mínimo de 10 caracteres), o recorde e a quantidade de partidas são sincronizados no Turso.
+- A confirmação de senha é validada na tela de cadastro. Use uma senha exclusiva.
+- O progresso sincronizado é estatístico (recorde e partidas por jogo); não é um salvamento do estado exato no meio de uma fase.
+- O acesso à conta usa cookie de sessão HttpOnly. O projeto ainda não possui verificação de e-mail nem fluxo de recuperação de senha.
